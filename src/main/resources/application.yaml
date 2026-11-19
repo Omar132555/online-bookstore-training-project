@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: online-book-store
+  jpa:
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:mysql://localhost:3306/online-bookstore
+    username: root
+    password: root
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: omar.mostafa1325@gmail.com
+    password: mvrz vpdk jwgf isjs
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+logging:
+  level:
+    org.springframework.security: TRACE
+  # ------------------------------Fixed Numbers---------------------------------------
+otp:
+  digits: 6
+  otpTtl: 5m
+  resendAttempts: 2
+  attemptsPerCode: 5
+  otpGapCooldown: 60s
+  sendsPerDay: 10
+  pendingAccountTtl: 15m
+
+email:
+  from: omar.mostafa1325@gmail.com
+
+other-config:
+  passwordMinimum: 8char, BCrypt
+  timeStamp: ISO-8601, UTC
+
+
+server:
+  servlet:
+    context-path: /api/online-bookstore
+

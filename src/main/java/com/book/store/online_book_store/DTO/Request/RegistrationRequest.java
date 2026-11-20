@@ -27,6 +27,5 @@ public class RegistrationRequest {
     private String password;
     @NotBlank
     private String confirmPassword;
-    private String contribute;
 
 }

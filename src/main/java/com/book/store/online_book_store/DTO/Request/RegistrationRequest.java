@@ -20,7 +20,7 @@ public class RegistrationRequest {
     @NotBlank
     // check if email exists or not
     private String email;
-    @Size(min = 8)
+    @Size(min = 8, message = "Password must be at least 8 characters")
     @Pattern(regexp = ".*[a-zA-Z].*", message = "Password must contain at least one letter")
     @Pattern(regexp = ".*\\d.*", message = "Password must contain at least a number")
     @NotBlank

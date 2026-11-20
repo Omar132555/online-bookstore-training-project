@@ -68,4 +68,8 @@ public class RegistrationService {
             //otpTtl return with the otpAttempts
         return new RegistrationResponse(registrationId, sessionExpiresAt, resendAvailableAt);
     }
+
+    public String resend(){
+        return "we are in resend";
+    }
 }

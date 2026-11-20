@@ -9,6 +9,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -21,10 +23,13 @@ public class EmailService {
 
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        helper.setFrom(fromEmail);
+        try {
+        helper.setFrom(fromEmail, "Online-Bookstore");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
         helper.setTo(to);
         helper.setSubject(subject);
-
         helper.setText(htmlBody, true);
 
         mailSender.send(message);

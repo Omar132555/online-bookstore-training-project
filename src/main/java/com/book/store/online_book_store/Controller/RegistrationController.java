@@ -11,19 +11,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-//@RequestMapping("/registration")
+@RequestMapping("/registration")
 @RequiredArgsConstructor
 public class RegistrationController {
     private final RegistrationService registrationService;
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegistrationResponse>> register(@Valid @RequestBody RegistrationRequest request){
         RegistrationResponse response = registrationService.register(request);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.success(response));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
-    @GetMapping
-    public String print(){
-        return "hello world";
+    @PostMapping("/{id}/resend")
+    public ResponseEntity<ApiResponse<String>> resend(@PathVariable String id){
+        String response = registrationService.resend() + "\n" + id;
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.success(response));
     }
 }

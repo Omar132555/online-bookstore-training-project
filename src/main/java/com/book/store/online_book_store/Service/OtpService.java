@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Locale;
+import java.util.UUID;
 
 
 @Service
@@ -72,7 +73,7 @@ public class OtpService {
         redisTemplate.opsForValue().set(resendKey, resendAttempts, pendingAccountTtl); // resend
     }
 
-    public void resend() {
+    public void resend(UUID uuid) {
 
     }
 }

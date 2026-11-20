@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.Locale;
 
 
 @Service
@@ -17,6 +18,8 @@ public class OtpService {
     private final StringRedisTemplate redisTemplate;
     private final EmailService emailService;
     private static final String RESEND_KEY = "resend:email:";
+    private static final String OTP_COOLDOWN_KEY = "otp:cooldown:";
+    private static final String OTP_ATTEMPTS_KEY = "otp:attempts:";
     @Value("${otp.otpGapCooldown}")
     private Duration otpGapCooldown;
     @Value("${otp.attemptsPerCode}")
@@ -32,7 +35,7 @@ public class OtpService {
         // check if the cooldown time expired to allow the user request ( not critical )
         // use the smtp and user email to send the otp
         // create the redis key value pair for otp cooldown & attempt
-        String otp = String.format("%06d", random.nextInt(1_000_000));
+        String otp = String.format(Locale.ROOT, "%06d", random.nextInt(1_000_000));
         String html = """
                 <!DOCTYPE html>
                 <html>
@@ -61,9 +64,11 @@ public class OtpService {
                 </html>
                 """.formatted(otp);
         String resendKey = RESEND_KEY + userEmail;
+        String otpCooldownKey = OTP_COOLDOWN_KEY + otp;
+        String otpAttemptsKey = OTP_ATTEMPTS_KEY + otp;
         emailService.sendHtmlEmail(userEmail, "OTP Verification", html);
-        redisTemplate.opsForValue().set(otp, userEmail, otpGapCooldown);    // code cooldown ( resend availability )
-        redisTemplate.opsForValue().set(otp, attemptsPerCode, otpTtl); // code attempts
+        redisTemplate.opsForValue().set(otpCooldownKey, userEmail, otpGapCooldown);    // code cooldown ( resend availability )
+        redisTemplate.opsForValue().set(otpAttemptsKey, attemptsPerCode, otpTtl); // code attempts
         redisTemplate.opsForValue().set(resendKey, resendAttempts, pendingAccountTtl); // resend
     }
 

@@ -73,7 +73,7 @@ public class OtpService {
         redisTemplate.opsForValue().set(resendKey, resendAttempts, pendingAccountTtl); // resend
     }
 
-    public void resend(UUID uuid) {
-
+    public String resend(UUID uuid) {
+        return "we are in otp service resend"
     }
 }

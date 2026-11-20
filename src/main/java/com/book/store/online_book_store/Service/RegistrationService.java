@@ -69,7 +69,8 @@ public class RegistrationService {
         return new RegistrationResponse(registrationId, sessionExpiresAt, resendAvailableAt);
     }
 
-    public String resend(){
-        return "we are in resend";
+    public String resend(String id){
+        UUID uuid = UUID.fromString(id);
+        return otpService.resend(uuid);
     }
 }

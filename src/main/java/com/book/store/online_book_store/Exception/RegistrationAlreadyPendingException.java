@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class RegistrationAlreadyPendingException extends RuntimeException {
-    private String registrationId;
+    private final String registrationId;
 ;    public RegistrationAlreadyPendingException(String registrationId, String message) {
         super(message);
         this.registrationId = registrationId;

@@ -24,7 +24,7 @@ public class RegistrationController {
 
     @PostMapping("/{id}/resend")
     public ResponseEntity<ApiResponse<String>> resend(@PathVariable String id){
-        String response = registrationService.resend() + "\n" + id;
+        String response = registrationService.resend(id);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.success(response));
     }
 }

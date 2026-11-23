@@ -57,7 +57,7 @@ public class RegistrationService {
         // store user in cache user temp table
         String registrationId = pendingRegistrationService.save(pendingRegistration, pendingRegistrationTtl);
         // Call SendOtp
-        otpService.sendOtp(email);
+        otpService.sendOtp(email, registrationId);
         //regId, pendingSessionExpiresAt, otpExpiresAt, otpAttempts     *needed*
         Instant sessionExpiresAt = Instant.now().plus(pendingRegistrationTtl);
         Instant resendAvailableAt = Instant.now().plus(otpGapCooldown);
@@ -71,6 +71,6 @@ public class RegistrationService {
 
     public String resend(String id){
         UUID uuid = UUID.fromString(id);
-        return otpService.resend(uuid);
+        return otpService.resendOtp(uuid);
     }
 }

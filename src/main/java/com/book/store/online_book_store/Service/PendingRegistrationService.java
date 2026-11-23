@@ -14,12 +14,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PendingRegistrationService {
     private final StringRedisTemplate redisTemplate;
-    private static final String REGISTRATION_EMAIL_KEY = "registration:email:";
-    private static final String UUID_KEY = "UUID:";
+    private static final String REGISTRATION_EMAIL_KEY = "registration:email:UUID";
+    private static final String USER_DATA_KEY = "registration:UUID:user-Data:";
     private final ObjectMapper objectMapper;
 
     public PendingRegistration get(UUID registrationId){
-        String key = UUID_KEY + registrationId;
+        String key = USER_DATA_KEY + registrationId;
         String pendingRegistrationString = redisTemplate.opsForValue().get(key);
         if(pendingRegistrationString == null){
             return null;
@@ -47,7 +47,7 @@ public class PendingRegistrationService {
         UUID registrationId = UUID.randomUUID();
         String registrationKey = REGISTRATION_EMAIL_KEY + registration.getEmail();
         String userDataValue = objectMapper.writeValueAsString(registration);
-        String UuidKey = UUID_KEY + registrationId.toString();
+        String UuidKey = USER_DATA_KEY + registrationId.toString();
         redisTemplate.opsForValue().set(registrationKey, registrationId.toString(), pendingRegistrationTtl);
         redisTemplate.opsForValue().set(UuidKey, userDataValue, pendingRegistrationTtl);
         return registrationId.toString();

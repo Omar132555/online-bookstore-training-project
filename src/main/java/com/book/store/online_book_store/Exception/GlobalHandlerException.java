@@ -30,6 +30,12 @@ public class GlobalHandlerException {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.failure(error));
     }
 
+    @ExceptionHandler(SessionExpiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSessionExpiredException(SessionExpiredException ex){
+        ErrorResponse error = new ErrorResponse(1005, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.GONE).body(ApiResponse.failure(error));
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
         ErrorResponse error = new ErrorResponse(
@@ -50,8 +56,11 @@ public class GlobalHandlerException {
     }
 
     @ExceptionHandler(RegistrationAlreadyPendingException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAlreadyRegisteredException(RegistrationAlreadyPendingException alreadyRegisteredException) {
-        ErrorResponse error = new ErrorResponse(2002, alreadyRegisteredException.getMessage());
+    public ResponseEntity<ApiResponse<Void>> handleAlreadyRegisteredException(RegistrationAlreadyPendingException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("errorType", ex.getMessage());
+        response.put("UUID", ex.getRegistrationId());
+        ErrorResponse error = new ErrorResponse(2002, response);
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.failure(error));
     }

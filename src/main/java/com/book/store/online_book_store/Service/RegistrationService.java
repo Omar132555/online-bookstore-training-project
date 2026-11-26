@@ -4,11 +4,13 @@ import com.book.store.online_book_store.DTO.PendingRegistration;
 import com.book.store.online_book_store.DTO.Request.RegistrationRequest;
 import com.book.store.online_book_store.DTO.Response.ApiResponse;
 import com.book.store.online_book_store.DTO.Response.RegistrationResponse;
+import com.book.store.online_book_store.DTO.Response.ResendOtpResponse;
 import com.book.store.online_book_store.Exception.AlreadyRegisteredException;
 import com.book.store.online_book_store.Exception.RegistrationAlreadyPendingException;
 import com.book.store.online_book_store.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -57,7 +59,7 @@ public class RegistrationService {
         // store user in cache user temp table
         String registrationId = pendingRegistrationService.save(pendingRegistration, pendingRegistrationTtl);
         // Call SendOtp
-        otpService.sendOtp(email);
+        otpService.sendOtp(email, registrationId);
         //regId, pendingSessionExpiresAt, otpExpiresAt, otpAttempts     *needed*
         Instant sessionExpiresAt = Instant.now().plus(pendingRegistrationTtl);
         Instant resendAvailableAt = Instant.now().plus(otpGapCooldown);
@@ -67,5 +69,10 @@ public class RegistrationService {
         // address -> attemptsPerAddress TTL 24h
             //otpTtl return with the otpAttempts
         return new RegistrationResponse(registrationId, sessionExpiresAt, resendAvailableAt);
+    }
+
+    public ResendOtpResponse resend(String id){
+        UUID uuid = UUID.fromString(id);
+        return otpService.resendOtp(uuid);
     }
 }

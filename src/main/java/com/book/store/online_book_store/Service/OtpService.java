@@ -2,6 +2,7 @@ package com.book.store.online_book_store.Service;
 
 import com.book.store.online_book_store.DTO.PendingRegistration;
 import com.book.store.online_book_store.DTO.Response.ResendOtpResponse;
+import com.book.store.online_book_store.Exception.ResendCooldownException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -13,6 +14,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -116,7 +118,7 @@ public class OtpService {
         redisTemplate.opsForValue().set(resendKey, resendAttempts, pendingAccountTtl); // resend
     }
 
-    public void resendOtp(UUID uuid) {
+    public ResendOtpResponse resendOtp(UUID uuid) {
         String otpAttemptsKey = OTP_ATTEMPTS_KEY + uuid;
         String userDataKey = USER_DATA_KEY + uuid;
         String otpCooldownKey = OTP_COOLDOWN_KEY + uuid;
@@ -127,31 +129,35 @@ public class OtpService {
             throw new RuntimeException("Session expired");
         }
 
-        Long ttl = redisTemplate.getExpire(otpCooldownKey);
-        if(ttl > 0){
-            throw new RuntimeException("wait for cooldown");
+        Boolean allowed = redisTemplate.opsForValue()
+                .setIfAbsent(otpCooldownKey, "1", otpGapCooldown);
+        if (!Boolean.TRUE.equals(allowed)) {
+            Long remainingTtl = redisTemplate.getExpire(otpCooldownKey, TimeUnit.SECONDS);
+            throw new ResendCooldownException(remainingTtl == null ? 0 : remainingTtl);
         }
 
-        String resendAttemptsValue = redisTemplate.opsForValue().get(userDataKey);
-        if(resendAttemptsValue == null) {
-            throw new RuntimeException("resend Limit reached");
+        String resendAttemptsValue = redisTemplate.opsForValue().get(resendAttemptsKey);
+        if (resendAttemptsValue == null) {
+            throw new RuntimeException("Session Expired");
         }
-        int attempts = Integer.parseInt(resendAttemptsValue);
+        int resendAttempts = Integer.parseInt(resendAttemptsValue);
+        if (resendAttempts <= 0) {
+            throw new RuntimeException("You exceeded resend limit");
+        }
 
         PendingRegistration pendingRegistration = objectMapper.readValue(userDataValue, PendingRegistration.class);
-        if (attempts > 0) {
-            String otp = generateOTP();
-            String finalHtml = html.replace("{{OTP}}", otp);
-            emailService.sendHtmlEmail(pendingRegistration.getEmail(), "Resend Otp", finalHtml);
-            Long attemptsRemaining = redisTemplate.opsForValue().decrement(resendAttemptsKey);
-            redisTemplate.opsForValue().set(otpCooldownKey, "1", otpGapCooldown);    // code cooldown ( resend availability )
-            redisTemplate.opsForValue().set(otpAttemptsKey, attemptsPerCode, otpTtl); // code attempts
-            Instant resendAvailableAt = Instant.now().plus(otpGapCooldown);
-            Instant expiresAt = Instant.now().plus(otpTtl);
-            return new ResendOtpResponse(attemptsRemaining, expiresAt, resendAvailableAt);
-        }
+        String otp = generateOTP();
+        String finalHtml = html.replace("{{OTP}}", otp);
+        emailService.sendHtmlEmail(pendingRegistration.getEmail(), "Resend Otp", finalHtml);
+        Long attemptsRemaining = redisTemplate.opsForValue().decrement(resendAttemptsKey);
+        redisTemplate.opsForValue().set(otpAttemptsKey, attemptsPerCode, otpTtl); // code attempts
+        Instant resendAvailableAt = Instant.now().plus(otpGapCooldown);
+        Instant expiresAt = Instant.now().plus(otpTtl);
+
+        return new ResendOtpResponse(attemptsRemaining, expiresAt, resendAvailableAt);
     }
-// remaining attempts, cooldown (resendAvailableAt), TTL(expiresAt)
+
+    // remaining attempts, cooldown (resendAvailableAt), TTL(expiresAt)
     private String generateOTP() {
         return String.format(Locale.ROOT, "%06d", random.nextInt(1_000_000));
     }

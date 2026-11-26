@@ -2,6 +2,7 @@ package com.book.store.online_book_store.Service;
 
 import com.book.store.online_book_store.DTO.PendingRegistration;
 import com.book.store.online_book_store.DTO.Response.ResendOtpResponse;
+import com.book.store.online_book_store.Exception.ResendAttemptsException;
 import com.book.store.online_book_store.Exception.ResendCooldownException;
 import com.book.store.online_book_store.Exception.SessionExpiredException;
 import lombok.RequiredArgsConstructor;
@@ -123,11 +124,21 @@ public class OtpService {
         String otpAttemptsKey = OTP_ATTEMPTS_KEY + uuid;
         String userDataKey = USER_DATA_KEY + uuid;
         String otpCooldownKey = OTP_COOLDOWN_KEY + uuid;
-        String resendAttemptsKey = RESEND_KEY + uuid;
 
         String userDataValue = redisTemplate.opsForValue().get(userDataKey);
         if (userDataValue == null) {
             throw new SessionExpiredException("Session expired");
+        }
+        PendingRegistration pendingRegistration = objectMapper.readValue(userDataValue, PendingRegistration.class);
+
+        String resendAttemptsKey = RESEND_KEY + pendingRegistration.getEmail();
+        String resendAttemptsValue = redisTemplate.opsForValue().get(resendAttemptsKey);
+        if (resendAttemptsValue == null) {
+            throw new SessionExpiredException("Session Not found");
+        }
+        int resendAttempts = Integer.parseInt(resendAttemptsValue);
+        if (resendAttempts <= 0) {
+            throw new ResendAttemptsException("You exceeded resend limit");
         }
 
         Boolean allowed = redisTemplate.opsForValue()
@@ -137,27 +148,20 @@ public class OtpService {
             throw new ResendCooldownException(remainingTtl == null ? 0 : remainingTtl);
         }
 
-        String resendAttemptsValue = redisTemplate.opsForValue().get(resendAttemptsKey);
-        if (resendAttemptsValue == null) {
-            throw new SessionExpiredException("Session Expired");
-        }
-        int resendAttempts = Integer.parseInt(resendAttemptsValue);
-        if (resendAttempts <= 0) {
-            throw new RuntimeException("You exceeded resend limit");
-        }
-
-        PendingRegistration pendingRegistration = objectMapper.readValue(userDataValue, PendingRegistration.class);
         String otp = generateOTP();
         String finalHtml = html.replace("{{OTP}}", otp);
         emailService.sendHtmlEmail(pendingRegistration.getEmail(), "Resend Otp", finalHtml);
-        Long attemptsRemaining = redisTemplate.opsForValue().decrement(resendAttemptsKey);
         redisTemplate.opsForValue().set(otpAttemptsKey, attemptsPerCode, otpTtl); // code attempts
+        Long attemptsRemaining = decreaseAttempts(uuid, resendAttemptsKey);
         Instant resendAvailableAt = Instant.now().plus(otpGapCooldown);
         Instant expiresAt = Instant.now().plus(otpTtl);
 
         return new ResendOtpResponse(attemptsRemaining, expiresAt, resendAvailableAt);
     }
 
+    private long decreaseAttempts(UUID uuid, String resendAttemptsKey){
+        return redisTemplate.opsForValue().decrement(resendAttemptsKey);
+    }
     // remaining attempts, cooldown (resendAvailableAt), TTL(expiresAt)
     private String generateOTP() {
         return String.format(Locale.ROOT, "%06d", random.nextInt(1_000_000));

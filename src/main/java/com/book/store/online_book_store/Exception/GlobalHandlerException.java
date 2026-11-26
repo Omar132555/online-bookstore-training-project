@@ -65,6 +65,18 @@ public class GlobalHandlerException {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.failure(error));
     }
 
+    @ExceptionHandler(ResendCooldownException.class)
+    public ResponseEntity<ApiResponse<Void>> handleResendCooldownException(ResendCooldownException ex){
+        ErrorResponse error = new ErrorResponse(1006, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ApiResponse.failure(error));
+    }
+
+    @ExceptionHandler(ResendAttemptsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleResendAttemptsException(ResendAttemptsException ex){
+        ErrorResponse error = new ErrorResponse(1008, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ApiResponse.failure(error));
+    }
+
     @ExceptionHandler(AlreadyRegisteredException.class)
     public ResponseEntity<ApiResponse<Void>> handleAlreadyRegisteredException(AlreadyRegisteredException exception) {
         ErrorResponse error = new ErrorResponse(2003, exception.getMessage());

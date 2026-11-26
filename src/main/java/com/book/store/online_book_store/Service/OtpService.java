@@ -3,6 +3,7 @@ package com.book.store.online_book_store.Service;
 import com.book.store.online_book_store.DTO.PendingRegistration;
 import com.book.store.online_book_store.DTO.Response.ResendOtpResponse;
 import com.book.store.online_book_store.Exception.ResendCooldownException;
+import com.book.store.online_book_store.Exception.SessionExpiredException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -126,7 +127,7 @@ public class OtpService {
 
         String userDataValue = redisTemplate.opsForValue().get(userDataKey);
         if (userDataValue == null) {
-            throw new RuntimeException("Session expired");
+            throw new SessionExpiredException("Session expired");
         }
 
         Boolean allowed = redisTemplate.opsForValue()
@@ -138,7 +139,7 @@ public class OtpService {
 
         String resendAttemptsValue = redisTemplate.opsForValue().get(resendAttemptsKey);
         if (resendAttemptsValue == null) {
-            throw new RuntimeException("Session Expired");
+            throw new SessionExpiredException("Session Expired");
         }
         int resendAttempts = Integer.parseInt(resendAttemptsValue);
         if (resendAttempts <= 0) {

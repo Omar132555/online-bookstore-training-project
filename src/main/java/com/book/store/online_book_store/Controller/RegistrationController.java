@@ -3,6 +3,7 @@ package com.book.store.online_book_store.Controller;
 import com.book.store.online_book_store.DTO.Request.RegistrationRequest;
 import com.book.store.online_book_store.DTO.Response.ApiResponse;
 import com.book.store.online_book_store.DTO.Response.RegistrationResponse;
+import com.book.store.online_book_store.DTO.Response.ResendOtpResponse;
 import com.book.store.online_book_store.Service.RegistrationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,8 @@ public class RegistrationController {
     }
 
     @PostMapping("/{id}/resend")
-    public ResponseEntity<ApiResponse<String>> resend(@PathVariable String id){
-        String response = registrationService.resend(id);
+    public ResponseEntity<ApiResponse<ResendOtpResponse>> resend(@PathVariable String id){
+        ResendOtpResponse response = registrationService.resend(id);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.success(response));
     }
 }

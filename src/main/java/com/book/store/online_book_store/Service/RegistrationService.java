@@ -4,11 +4,13 @@ import com.book.store.online_book_store.DTO.PendingRegistration;
 import com.book.store.online_book_store.DTO.Request.RegistrationRequest;
 import com.book.store.online_book_store.DTO.Response.ApiResponse;
 import com.book.store.online_book_store.DTO.Response.RegistrationResponse;
+import com.book.store.online_book_store.DTO.Response.ResendOtpResponse;
 import com.book.store.online_book_store.Exception.AlreadyRegisteredException;
 import com.book.store.online_book_store.Exception.RegistrationAlreadyPendingException;
 import com.book.store.online_book_store.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -69,7 +71,7 @@ public class RegistrationService {
         return new RegistrationResponse(registrationId, sessionExpiresAt, resendAvailableAt);
     }
 
-    public String resend(String id){
+    public ResendOtpResponse resend(String id){
         UUID uuid = UUID.fromString(id);
         return otpService.resendOtp(uuid);
     }

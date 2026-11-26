@@ -30,6 +30,12 @@ public class GlobalHandlerException {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.failure(error));
     }
 
+    @ExceptionHandler(SessionExpiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSessionExpiredException(SessionExpiredException ex){
+        ErrorResponse error = new ErrorResponse(1005, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.GONE).body(ApiResponse.failure(error));
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
         ErrorResponse error = new ErrorResponse(

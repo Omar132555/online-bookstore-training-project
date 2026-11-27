@@ -28,4 +28,10 @@ public class RegistrationController {
         ResendOtpResponse response = registrationService.resend(id);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.success(response));
     }
+
+    @PostMapping("/{id}/verify")
+    public ResponseEntity<ApiResponse<String>> verify(@PathVariable String id){
+        String response = registrationService.verify(id);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("We are in Verify Endpoint and this is your id -> " + response));
+    }
 }

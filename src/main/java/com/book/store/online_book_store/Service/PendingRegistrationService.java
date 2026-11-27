@@ -14,7 +14,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PendingRegistrationService {
     private final StringRedisTemplate redisTemplate;
-    private static final String REGISTRATION_EMAIL_KEY = "registration:email:UUID";
+    private static final String REGISTRATION_EMAIL_KEY = "registration:email:UUID:";
     private static final String USER_DATA_KEY = "registration:UUID:user-Data:";
     private final ObjectMapper objectMapper;
 

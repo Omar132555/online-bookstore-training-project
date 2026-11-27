@@ -29,7 +29,7 @@ public class OtpService {
     private final ObjectMapper objectMapper;
     private static final String RESEND_KEY = "resend:email:";
     private static final String OTP_COOLDOWN_KEY = "otp:UUID:cooldown:";
-    private static final String OTP_ATTEMPTS_KEY = "otp:UUID:attempts:";
+    private static final String OTP_ATTEMPTS_KEY = "otp:UUID:otpValue&attempts:";
     private static final String USER_DATA_KEY = "registration:UUID:user-Data:";
     @Value("${otp.otpGapCooldown}")
     private Duration otpGapCooldown;
@@ -113,7 +113,7 @@ public class OtpService {
         String finalHtml = html.replace("{{OTP}}", otp);
         String resendKey = RESEND_KEY + userEmail;
         String otpCooldownKey = OTP_COOLDOWN_KEY + registrationId;
-        String otpAttemptsKey = OTP_ATTEMPTS_KEY + registrationId;
+        String otpAttemptsKey = OTP_ATTEMPTS_KEY+ otp + registrationId;
         emailService.sendHtmlEmail(userEmail, "OTP Verification", finalHtml);
         redisTemplate.opsForValue().set(otpCooldownKey, "1", otpGapCooldown);    // code cooldown ( resend availability )
         redisTemplate.opsForValue().set(otpAttemptsKey, attemptsPerCode, otpTtl); // code attempts
@@ -121,7 +121,6 @@ public class OtpService {
     }
 
     public ResendOtpResponse resendOtp(UUID uuid) {
-        String otpAttemptsKey = OTP_ATTEMPTS_KEY + uuid;
         String userDataKey = USER_DATA_KEY + uuid;
         String otpCooldownKey = OTP_COOLDOWN_KEY + uuid;
 
@@ -149,6 +148,7 @@ public class OtpService {
         }
 
         String otp = generateOTP();
+        String otpAttemptsKey = OTP_ATTEMPTS_KEY + otp + uuid;
         String finalHtml = html.replace("{{OTP}}", otp);
         emailService.sendHtmlEmail(pendingRegistration.getEmail(), "Resend Otp", finalHtml);
         redisTemplate.opsForValue().set(otpAttemptsKey, attemptsPerCode, otpTtl); // code attempts

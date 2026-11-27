@@ -75,4 +75,10 @@ public class RegistrationService {
         UUID uuid = UUID.fromString(id);
         return otpService.resendOtp(uuid);
     }
+
+    public String verify(String id)
+    {
+        
+        return id;
+    }
 }

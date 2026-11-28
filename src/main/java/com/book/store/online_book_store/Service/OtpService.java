@@ -159,6 +159,10 @@ public class OtpService {
         return new ResendOtpResponse(attemptsRemaining, expiresAt, resendAvailableAt);
     }
 
+    private void verifyOtp(UUID uuid){
+        
+    }
+
     private long decreaseAttempts(UUID uuid, String resendAttemptsKey){
         return redisTemplate.opsForValue().decrement(resendAttemptsKey);
     }

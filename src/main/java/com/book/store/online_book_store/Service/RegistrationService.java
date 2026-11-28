@@ -10,6 +10,7 @@ import com.book.store.online_book_store.Exception.RegistrationAlreadyPendingExce
 import com.book.store.online_book_store.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.UUID;
 public class RegistrationService {
     private final UserRepository userRepository;
     //private final PasswordEncoder passwordEncoder;
+    private final StringRedisTemplate redisTemplate;
     private final PendingRegistrationService pendingRegistrationService;
     private final OtpService otpService;
     @Value("${otp.pendingAccountTtl}")
@@ -78,7 +80,13 @@ public class RegistrationService {
 
     public String verify(String id)
     {
-        
+        try {
+            uuid = UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRegistrationIdException();
+        }
+        otpService.verify(uuid);
+        // check for otp attempts
         return id;
     }
 }
